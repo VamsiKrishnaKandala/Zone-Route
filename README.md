@@ -12,90 +12,54 @@ This document provides an overview of each service, including API endpoints and 
 
 # Project Structure
 ```bash
-Zone-Route/
-├── eureka-server/
-│   ├── src/
-│   │   └── main/
-│   │       └── java/
-│   │           └── com/wastewise/eureka_server/
-│   │               └── EurekaServerApplication.java
-│   ├── pom.xml
-│   └── application.properties
-│
-├── zone-service/
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/
-│   │       │   └── com/wastewise/zoneservice/
-│   │       │       ├── ZoneServiceApplication.java
-│   │       │       ├── client/
-│   │       │       │   ├── RouteClient.java
-│   │       │       │   └── RouteClientFallback.java
-│   │       │       ├── config/
-│   │       │       │   └── SwaggerConfig.java
-│   │       │       ├── controller/
-│   │       │       │   └── ZoneController.java
-│   │       │       ├── dto/
-│   │       │       │   ├── ZoneCreationRequest.java
-│   │       │       │   ├── ZoneUpdateRequest.java
-│   │       │       │   └── ZoneResponse.java
-│   │       │       ├── entity/
-│   │       │       │   └── Zone.java
-│   │       │       ├── exception/
-│   │       │       │   ├── GlobalExceptionHandler.java
-│   │       │       │   └── custom/
-│   │       │       │       ├── ZoneNotFoundException.java
-│   │       │       │       ├── DuplicateZoneNameException.java
-│   │       │       │       ├── NoZoneChangesDetectedException.java
-│   │       │       │       └── ZoneDeletionException.java
-│   │       │       ├── repository/
-│   │       │       │   └── ZoneRepository.java
-│   │       │       ├── service/
-│   │       │       │   ├── ZoneService.java
-│   │       │       │   └── impl/
-│   │       │       │       └── ZoneServiceImpl.java
-│   │       │       └── util/
-│   │       │           └── ZoneIdGenerator.java
-│   ├── pom.xml
-│   └── application.properties
-│
-├── route-service/
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/
-│   │       │   └── com/wastewise/routeservice/
-│   │       │       ├── RouteServiceApplication.java
-│   │       │       ├── config/
-│   │       │       │   └── SwaggerConfig.java
-│   │       │       ├── controller/
-│   │       │       │   └── RouteController.java
-│   │       │       ├── dto/
-│   │       │       │   ├── RouteCreationRequest.java
-│   │       │       │   ├── RouteUpdateRequest.java
-│   │       │       │   └── RouteResponse.java
-│   │       │       ├── entity/
-│   │       │       │   └── Route.java
-│   │       │       ├── exception/
-│   │       │       │   ├── GlobalExceptionHandler.java
-│   │       │       │   └── custom/
-│   │       │       │       ├── RouteNotFoundException.java
-│   │       │       │       ├── DuplicateRouteNameException.java
-│   │       │       │       ├── ZoneNotFoundException.java
-│   │       │       │       ├── InvalidRouteDetailsException.java
-│   │       │       │       └── NoRouteChangesDetectedException.java
-│   │       │       ├── feign/
-│   │       │       │   └── ZoneClient.java
-│   │       │       ├── repository/
-│   │       │       │   └── RouteRepository.java
-│   │       │       ├── service/
-│   │       │       │   ├── RouteService.java
-│   │       │       │   └── impl/
-│   │       │       │       └── RouteServiceImpl.java
-│   │       │       └── util/
-│   │       │           └── RouteIdGenerator.java
-│   ├── pom.xml
-│   └── application.properties
-│
+zone-service/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── wastewise/
+│   │   │           └── zoneservice/
+│   │   │               ├── ZoneServiceApplication.java
+│   │   │               ├── client/
+│   │   │               │   ├── RouteClient.java
+│   │   │               │   └── RouteClientFallback.java
+│   │   │               ├── config/
+│   │   │               │   └── SwaggerConfig.java
+│   │   │               ├── controller/
+│   │   │               │   └── ZoneController.java
+│   │   │               ├── dto/
+│   │   │               │   ├── ZoneCreationRequest.java
+│   │   │               │   ├── ZoneUpdateRequest.java
+│   │   │               │   └── ZoneResponse.java
+│   │   │               ├── entity/
+│   │   │               │   └── Zone.java
+│   │   │               ├── exception/
+│   │   │               │   ├── GlobalExceptionHandler.java
+│   │   │               │   └── custom/
+│   │   │               │       ├── DuplicateZoneNameException.java
+│   │   │               │       ├── NoZoneChangesDetectedException.java
+│   │   │               │       ├── ZoneDeletionException.java
+│   │   │               │       └── ZoneNotFoundException.java
+│   │   │               ├── repository/
+│   │   │               │   └── ZoneRepository.java
+│   │   │               ├── service/
+│   │   │               │   ├── ZoneService.java
+│   │   │               │   └── impl/
+│   │   │               │       └── ZoneServiceImpl.java
+│   │   │               └── util/
+│   │   │                   └── ZoneIdGenerator.java
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── db/
+│   │           ├── schema.sql
+│   │           └── data.sql
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── wastewise/
+│                   └── zoneservice/
+│                       └── ZoneServiceApplicationTests.java
+├── pom.xml
 └── README.md
 ```
 
