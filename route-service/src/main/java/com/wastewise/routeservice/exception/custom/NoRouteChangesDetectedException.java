@@ -1,10 +1,12 @@
 package com.wastewise.routeservice.exception.custom;
 
+import static com.wastewise.routeservice.constant.RouteConstants.NO_CHANGES_MSG;
+
 /**
- * Exception thrown when no changes are detected during a route update.
+ * Thrown when an update request has no actual changes to the route.
  */
 public class NoRouteChangesDetectedException extends RuntimeException {
     public NoRouteChangesDetectedException(String routeId) {
-        super("No changes in the route details detected for route ID " + routeId);
+        super(String.format(NO_CHANGES_MSG, routeId));
     }
 }

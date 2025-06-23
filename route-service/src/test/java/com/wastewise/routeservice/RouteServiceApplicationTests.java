@@ -1,4 +1,4 @@
-package com.wastewise.route_service;
+package com.wastewise.routeservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -72,6 +72,14 @@
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
+    
+    <!-- h2 database for UnitTesting -->
+    <dependency>
+	    <groupId>com.h2database</groupId>
+	    <artifactId>h2</artifactId>
+	    <scope>test</scope>
+	</dependency>
+
 
     </dependencies>
 
@@ -93,7 +101,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            
         </plugins>
+        
     </build>
 
 </project>

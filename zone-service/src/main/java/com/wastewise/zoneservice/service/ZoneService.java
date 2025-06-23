@@ -1,19 +1,20 @@
 package com.wastewise.zoneservice.service;
 
-import com.wastewise.zoneservice.dto.ZoneCreationRequest;
-import com.wastewise.zoneservice.dto.ZoneUpdateRequest;
-import com.wastewise.zoneservice.entity.Zone;
-
 import java.util.List;
+
+import com.wastewise.zoneservice.dto.ZoneCreationRequestDTO;
+import com.wastewise.zoneservice.dto.ZoneNameAndIdResponse;
+import com.wastewise.zoneservice.dto.ZoneUpdateRequestDTO;
+import com.wastewise.zoneservice.entity.Zone;
 
 /**
  * Service interface for Zone management.
  */
 public interface ZoneService {
 
-    Zone createZone(ZoneCreationRequest request);
+    Zone createZone(ZoneCreationRequestDTO request);
 
-    Zone updateZone(String zoneId, ZoneUpdateRequest request);
+    Zone updateZone(String zoneId, ZoneUpdateRequestDTO request);
 
     void deleteZone(String zoneId);
 
@@ -22,4 +23,6 @@ public interface ZoneService {
     Zone getZoneById(String zoneId);
 
     boolean existsByZoneId(String zoneId);
+    
+    List<ZoneNameAndIdResponse> getAllZoneNamesAndIds();
 }

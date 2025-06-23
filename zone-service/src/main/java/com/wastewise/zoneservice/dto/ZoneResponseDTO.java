@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ZoneResponse {
+public class ZoneResponseDTO {
 
     private String zoneId;
     private String zoneName;

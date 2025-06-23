@@ -1,5 +1,6 @@
 package com.wastewise.zoneservice.client;
 
+import com.wastewise.zoneservice.payload.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,8 +17,8 @@ public interface RouteClient {
      * Fetch all route IDs assigned to a given zone.
      *
      * @param zoneId the zone ID
-     * @return list of route IDs assigned to the zone
+     * @return RestResponse containing list of route IDs
      */
     @GetMapping("/wastewise/admin/routes/zone/{zoneId}")
-    List<String> getRoutesByZoneId(@PathVariable("zoneId") String zoneId);
+    RestResponse<List<String>> getRoutesByZoneId(@PathVariable("zoneId") String zoneId);
 }

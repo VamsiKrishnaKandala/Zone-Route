@@ -1,23 +1,34 @@
 package com.wastewise.zoneservice.service.impl;
 
-import com.wastewise.zoneservice.client.RouteClient;
-import com.wastewise.zoneservice.dto.ZoneCreationRequest;
-import com.wastewise.zoneservice.dto.ZoneUpdateRequest;
-import com.wastewise.zoneservice.entity.Zone;
-import com.wastewise.zoneservice.exception.custom.*;
-import com.wastewise.zoneservice.repository.ZoneRepository;
-import com.wastewise.zoneservice.service.ZoneService;
-import com.wastewise.zoneservice.util.ZoneIdGenerator;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.wastewise.zoneservice.client.RouteClient;
+import com.wastewise.zoneservice.dto.ZoneCreationRequestDTO;
+import com.wastewise.zoneservice.dto.ZoneNameAndIdResponse;
+import com.wastewise.zoneservice.dto.ZoneUpdateRequestDTO;
+import com.wastewise.zoneservice.entity.Zone;
+import com.wastewise.zoneservice.exception.custom.DuplicateZoneNameException;
+import com.wastewise.zoneservice.exception.custom.NoZoneChangesDetectedException;
+import com.wastewise.zoneservice.exception.custom.ZoneDeletionException;
+import com.wastewise.zoneservice.exception.custom.ZoneNotFoundException;
+import com.wastewise.zoneservice.repository.ZoneRepository;
+import com.wastewise.zoneservice.service.ZoneService;
+import com.wastewise.zoneservice.util.ZoneIdGenerator;
+
+import lombok.RequiredArgsConstructor;
 
 /**
- * Service implementation for Zone management.
+ * ------------------------------------------------------------------------------
+ * Service Implementation: ZoneServiceImpl
+ * ------------------------------------------------------------------------------
+ * Handles business logic for Zone operations.
+ * Validates name uniqueness, prevents deletion with routes, and logs actions.
+ * ------------------------------------------------------------------------------
  */
 @Service
 @RequiredArgsConstructor
@@ -30,8 +41,9 @@ public class ZoneServiceImpl implements ZoneService {
 
     @Override
     @Transactional
-    public Zone createZone(ZoneCreationRequest request) {
+    public Zone createZone(ZoneCreationRequestDTO request) {
         logger.info("Creating zone with name: {}", request.getZoneName());
+
         zoneRepository.findByZoneName(request.getZoneName())
                 .ifPresent(z -> {
                     logger.error("Duplicate zone name: {}", request.getZoneName());
@@ -45,6 +57,7 @@ public class ZoneServiceImpl implements ZoneService {
                 .zoneName(request.getZoneName())
                 .areaCoverage(request.getAreaCoverage())
                 .build();
+
         Zone createdZone = zoneRepository.save(zone);
         logger.info("Zone created successfully with ID: {}", createdZone.getZoneId());
         return createdZone;
@@ -52,19 +65,16 @@ public class ZoneServiceImpl implements ZoneService {
 
     @Override
     @Transactional
-    public Zone updateZone(String zoneId, ZoneUpdateRequest request) {
+    public Zone updateZone(String zoneId, ZoneUpdateRequestDTO request) {
         logger.info("Updating zone with ID: {}", zoneId);
+
         Zone existing = zoneRepository.findById(zoneId)
-                .orElseThrow(() -> {
-                    logger.error("Zone not found with ID: {}", zoneId);
-                    return new ZoneNotFoundException(zoneId);
-                });
+                .orElseThrow(() -> new ZoneNotFoundException(zoneId));
 
         boolean changed = false;
 
         if (!existing.getZoneName().equals(request.getZoneName())) {
             zoneRepository.findByZoneName(request.getZoneName()).ifPresent(z -> {
-                logger.error("Duplicate zone name: {}", request.getZoneName());
                 throw new DuplicateZoneNameException(request.getZoneName());
             });
             existing.setZoneName(request.getZoneName());
@@ -77,7 +87,6 @@ public class ZoneServiceImpl implements ZoneService {
         }
 
         if (!changed) {
-            logger.warn("No changes detected during update for zone ID: {}", zoneId);
             throw new NoZoneChangesDetectedException(zoneId);
         }
 
@@ -90,13 +99,16 @@ public class ZoneServiceImpl implements ZoneService {
     @Transactional
     public void deleteZone(String zoneId) {
         logger.info("Deleting zone with ID: {}", zoneId);
+
         Zone zone = zoneRepository.findById(zoneId)
                 .orElseThrow(() -> {
                     logger.error("Zone not found with ID: {}", zoneId);
                     return new ZoneNotFoundException(zoneId);
                 });
 
-        List<String> assignedRoutes = routeClient.getRoutesByZoneId(zoneId);
+        // ✅ Fix here: extract list from RestResponse
+        List<String> assignedRoutes = routeClient.getRoutesByZoneId(zoneId).getData();
+
         if (assignedRoutes != null && !assignedRoutes.isEmpty()) {
             logger.error("Zone deletion failed, assigned routes found: {}", assignedRoutes);
             throw new ZoneDeletionException(zoneId, assignedRoutes);
@@ -105,6 +117,8 @@ public class ZoneServiceImpl implements ZoneService {
         zoneRepository.delete(zone);
         logger.info("Zone deleted successfully with ID: {}", zoneId);
     }
+
+
 
     @Override
     public List<Zone> getAllZones() {
@@ -123,5 +137,13 @@ public class ZoneServiceImpl implements ZoneService {
     public boolean existsByZoneId(String zoneId) {
         logger.info("Checking existence of zone with ID: {}", zoneId);
         return zoneRepository.existsByZoneId(zoneId);
+    }
+    
+    @Override
+    public List<ZoneNameAndIdResponse> getAllZoneNamesAndIds() {
+        logger.info("Fetching all zone IDs and names only");
+        return zoneRepository.findAll().stream()
+                .map(zone -> new ZoneNameAndIdResponse(zone.getZoneId(), zone.getZoneName()))
+                .toList();
     }
 }

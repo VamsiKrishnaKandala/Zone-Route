@@ -1,5 +1,6 @@
 package com.wastewise.routeservice.feign;
 
+import com.wastewise.routeservice.payload.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,5 +18,5 @@ public interface ZoneClient {
      * @return true if the zone exists, false otherwise
      */
     @GetMapping("/wastewise/admin/zones/{zoneId}/exists")
-    boolean existsByZoneId(@PathVariable("zoneId") String zoneId);
+    RestResponse<Boolean> existsByZoneId(@PathVariable("zoneId") String zoneId);
 }

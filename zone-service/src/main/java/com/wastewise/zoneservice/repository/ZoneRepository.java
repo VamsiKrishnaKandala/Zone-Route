@@ -1,6 +1,7 @@
 package com.wastewise.zoneservice.repository;
 
 import com.wastewise.zoneservice.entity.Zone;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

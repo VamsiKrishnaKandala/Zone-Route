@@ -1,25 +1,30 @@
 package com.wastewise.routeservice.service.impl;
 
-import com.wastewise.routeservice.dto.RouteCreationRequest;
-import com.wastewise.routeservice.dto.RouteResponse;
-import com.wastewise.routeservice.dto.RouteUpdateRequest;
+import com.wastewise.routeservice.dto.RouteCreationRequestDTO;
+import com.wastewise.routeservice.dto.RouteResponseDTO;
+import com.wastewise.routeservice.dto.RouteUpdateRequestDTO;
 import com.wastewise.routeservice.entity.Route;
 import com.wastewise.routeservice.exception.custom.*;
 import com.wastewise.routeservice.feign.ZoneClient;
+import com.wastewise.routeservice.payload.RestResponse;
 import com.wastewise.routeservice.repository.RouteRepository;
 import com.wastewise.routeservice.service.RouteService;
 import com.wastewise.routeservice.util.RouteIdGenerator;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Implementation class for RouteService interface.
+ * ------------------------------------------------------------------------------
+ * Service Implementation: RouteServiceImpl
+ * ------------------------------------------------------------------------------
+ * Handles core business logic for route management:
+ * - Validates zones via Feign client.
+ * - Prevents duplicate routes in the same zone.
+ * - Converts route entity to response DTO.
+ * ------------------------------------------------------------------------------
  */
 @Service
 @RequiredArgsConstructor
@@ -31,19 +36,24 @@ public class RouteServiceImpl implements RouteService {
     private final ZoneClient zoneClient;
 
     /**
-     * {@inheritDoc}
+     * Creates a new route if the zone exists and name is unique in zone.
+     *
+     * @param requestDto Route creation request DTO
+     * @return RouteResponse
      */
     @Override
-    public RouteResponse createRoute(RouteCreationRequest requestDto) {
+    public RouteResponseDTO createRoute(RouteCreationRequestDTO requestDto) {
         log.info("Creating route for zone: {}", requestDto.getZoneId());
 
-        if (!zoneClient.existsByZoneId(requestDto.getZoneId())) {
+        RestResponse<Boolean> zoneResponse = zoneClient.existsByZoneId(requestDto.getZoneId());
+        if (zoneResponse.getData() == null || !zoneResponse.getData()) {
             throw new ZoneNotFoundException(requestDto.getZoneId());
         }
 
-        if (routeRepository.findByRouteNameAndZoneId(requestDto.getRouteName(), requestDto.getZoneId()).isPresent()) {
-            throw new DuplicateRouteNameException(requestDto.getRouteName(), requestDto.getZoneId());
-        }
+        routeRepository.findByRouteNameAndZoneId(requestDto.getRouteName(), requestDto.getZoneId())
+                .ifPresent(route -> {
+                    throw new DuplicateRouteNameException(requestDto.getRouteName(), requestDto.getZoneId());
+                });
 
         String routeId = routeIdGenerator.generateRouteId(requestDto.getZoneId());
 
@@ -56,22 +66,12 @@ public class RouteServiceImpl implements RouteService {
                 .build();
 
         routeRepository.save(route);
-        log.info("Route created with ID: {}", routeId);
-
-        return RouteResponse.builder()
-                .routeId(route.getRouteId())
-                .routeName(route.getRouteName())
-                .pickupPoints(route.getPickupPoints())
-                .zoneId(route.getZoneId())
-                .estimatedTime(route.getEstimatedTime())
-                .build();
+        log.info("Route created successfully with ID: {}", routeId);
+        return mapToResponse(route);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public RouteResponse updateRoute(String routeId, RouteUpdateRequest requestDto) {
+    public RouteResponseDTO updateRoute(String routeId, RouteUpdateRequestDTO requestDto) {
         log.info("Updating route with ID: {}", routeId);
 
         Route existingRoute = routeRepository.findById(routeId)
@@ -86,7 +86,7 @@ public class RouteServiceImpl implements RouteService {
         }
 
         if (isNameChanged &&
-            routeRepository.findByRouteNameAndZoneId(requestDto.getRouteName(), existingRoute.getZoneId()).isPresent()) {
+                routeRepository.findByRouteNameAndZoneId(requestDto.getRouteName(), existingRoute.getZoneId()).isPresent()) {
             throw new DuplicateRouteNameException(requestDto.getRouteName(), existingRoute.getZoneId());
         }
 
@@ -95,20 +95,10 @@ public class RouteServiceImpl implements RouteService {
         existingRoute.setEstimatedTime(requestDto.getEstimatedTime());
 
         routeRepository.save(existingRoute);
-        log.info("Route updated successfully: {}", routeId);
-
-        return RouteResponse.builder()
-                .routeId(existingRoute.getRouteId())
-                .routeName(existingRoute.getRouteName())
-                .pickupPoints(existingRoute.getPickupPoints())
-                .zoneId(existingRoute.getZoneId())
-                .estimatedTime(existingRoute.getEstimatedTime())
-                .build();
+        log.info("Route updated successfully for ID: {}", routeId);
+        return mapToResponse(existingRoute);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void deleteRoute(String routeId) {
         log.info("Deleting route with ID: {}", routeId);
@@ -120,43 +110,23 @@ public class RouteServiceImpl implements RouteService {
         log.info("Route deleted successfully: {}", routeId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public List<RouteResponse> getAllRoutes() {
+    public List<RouteResponseDTO> getAllRoutes() {
         log.info("Fetching all routes");
-
         return routeRepository.findAll()
                 .stream()
-                .map(route -> RouteResponse.builder()
-                        .routeId(route.getRouteId())
-                        .routeName(route.getRouteName())
-                        .pickupPoints(route.getPickupPoints())
-                        .zoneId(route.getZoneId())
-                        .estimatedTime(route.getEstimatedTime())
-                        .build())
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public RouteResponse getRouteById(String routeId) {
+    public RouteResponseDTO getRouteById(String routeId) {
         log.info("Fetching route with ID: {}", routeId);
-
         Route route = routeRepository.findById(routeId)
                 .orElseThrow(() -> new RouteNotFoundException(routeId));
-
-        return RouteResponse.builder()
-                .routeId(route.getRouteId())
-                .routeName(route.getRouteName())
-                .pickupPoints(route.getPickupPoints())
-                .zoneId(route.getZoneId())
-                .estimatedTime(route.getEstimatedTime())
-                .build();
+        return mapToResponse(route);
     }
+
     @Override
     public List<String> getRouteIdsByZoneId(String zoneId) {
         log.info("Fetching route IDs for zone ID: {}", zoneId);
@@ -166,4 +136,13 @@ public class RouteServiceImpl implements RouteService {
                 .collect(Collectors.toList());
     }
 
+    private RouteResponseDTO mapToResponse(Route route) {
+        return RouteResponseDTO.builder()
+                .routeId(route.getRouteId())
+                .routeName(route.getRouteName())
+                .zoneId(route.getZoneId())
+                .pickupPoints(route.getPickupPoints())
+                .estimatedTime(route.getEstimatedTime())
+                .build();
+    }
 }

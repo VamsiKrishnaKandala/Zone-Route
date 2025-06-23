@@ -1,19 +1,16 @@
 package com.wastewise.zoneservice.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
- * DTO for zone creation request.
+ * DTO containing only the zone ID and zone name.
  */
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ZoneCreationRequest {
-
+public class ZoneNameAndIdResponse {
+    private String zoneId;
     private String zoneName;
-    private Long areaCoverage;
 }
